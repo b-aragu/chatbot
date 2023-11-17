@@ -126,35 +126,31 @@
 	</div>
     </nav>
 
-    <div class="container">
+	    <div class="container">
         <div class="box">
-	  <div class="upper" id="upperid">
-    		<span class="downwarning">Type your message in the box below.</span>
+<div class="upper" id="upperid">
+    <span class="downwarning">Type your message in the box below.</span>
 
-	<!-- Display chat history for the current session -->
-	{% for conversation in current_session_chats %}
-    		<div class="message">
-       		  <div class="usermessagediv">
-            	     <div class="usermessage">
-                	{{ conversation.input_data }}
-            	     </div>
-        	  </div>
-        	<div class="appmessagediv">
-            	<div class="appmessage">
-                	{{ conversation.output_data }}
-            	     </div>
-        	   </div>
-    		</div>
-	{% endfor %}    
-	<!-- Display a button or link to load more or view previous sessions -->
-	{% if previous_sessions %}
-    	<button onclick="loadPreviousSessions()">Load Previous Sessions</button>
-	{% endif %}
+    {% for conversation in conversations %}
+        <!-- Display both user and application messages -->
+        <div class="message">
+            <div class="usermessagediv">
+                <div class="usermessage">
+                    {{ conversation.input_data }}
+                </div>
+            </div>
+            <div class="appmessagediv">
+                <div class="appmessage">
+                    {{ conversation.output_data }}
+                </div>
+            </div>
+        </div>
 
-	<!-- Container to display chat history for previous sessions -->
-	<div id="previousSessionsContainer" style="display: none;"></div>
-	<!-- Chat history for each previous session -->
-    </div>
+
+    {% endfor %}
+</div>
+
+
             <div class="bottom">
                  <form id="userinputform">
                     <label for="chat" class="sr-only">Your message</label>
@@ -184,34 +180,6 @@
 
 
 <script>
-    var sessionID = "{{ session['session_id'] }}";
-
-    // Check if the sessionID is null or undefined
-    if ("{{ session['session_id'] }}" === null || "{{ session['session_id'] }}" === undefined) {
-        console.error("Invalid sessionID:", "{{ session['session_id'] }}");
-        // Handle this case (e.g., redirect to login page)
-    } else {
-        console.log("Session ID:", "{{ session['session_id'] }}");
-        // Continue with the existing logic
-
-        // Define an async function to fetch conversations
-        async function fetchConversations() {
-            try {
-                const response = await fetch(`/fetch_conversation/{{ session['session_id'] }}`);
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}: ${response.statusText}`);
-                }
-
-                let json = await response.json();
-                // ... (rest of your existing code)
-            } catch (error) {
-                console.error('Error during fetch operation:', error);
-            }
-        }
-
-        // Call the async function
-        fetchConversations();
-    }
     // for scrolling messages
     function scrollToBottom() {
         var div = document.getElementById("upperid");
@@ -257,10 +225,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-			data: userinput,
-			session_id: "{{ session['session_id'] }}"  // Use the session ID obtained from the HTML
-		})
+                body: JSON.stringify({ data: userinput })
             });
 
             if (!response.ok) {
@@ -311,7 +276,6 @@
                 </div>`;
                 sendbtn.disabled = false;
                 userinputarea.disabled = false;
-		scrollToBottom();
             }
 
             scrollToBottom();
@@ -371,61 +335,6 @@
         const dropdown = document.getElementById("formatDropdown");
         dropdown.style.display = "none";
     }
-
-
-    function loadPreviousSessions() {
-        var container = document.getElementById("previousSessionsContainer");
-        container.style.display = (container.style.display === "none") ? "block" : "none";
-    }
-	
-
-        // Function to load previous sessions and their conversations
-        async function loadPreviousSessions() {
-            try {
-                const response = await fetch("/fetch_previous_sessions");  // Update the endpoint as needed
-                const data = await response.json();
-
-                const previousSessionsContainer = document.getElementById("previousSessionsContainer");
-                previousSessionsContainer.innerHTML = "";  // Clear previous content
-
-                data.forEach(async (sessionID) => {
-                    const sessionResponse = await fetch(`/fetch_conversation/${sessionID}`);
-                    const conversationData = await sessionResponse.json();
-
-                    // Display conversations for each session
-                    conversationData.forEach((conversation) => {
-                        displayConversation(conversation, previousSessionsContainer);
-                    });
-                });
-
-                // Show the container after loading
-                previousSessionsContainer.style.display = "block";
-            } catch (error) {
-                console.error("Error loading previous sessions:", error);
-            }
-        }
-
-        // Function to display a conversation
-        function displayConversation(conversation, container) {
-            // Create HTML elements for user and bot messages
-            const userMessage = document.createElement("div");
-            userMessage.classList.add("usermessagediv");
-            userMessage.innerHTML = `<div class="usermessage">${conversation.input_data}</div>`;
-
-            const appMessage = document.createElement("div");
-            appMessage.classList.add("appmessagediv");
-            appMessage.innerHTML = `<div class="appmessage">${conversation.output_data}</div>`;
-
-            // Create a message container and append user and bot messages
-            const messageContainer = document.createElement("div");
-            messageContainer.classList.add("message");
-            messageContainer.appendChild(userMessage);
-            messageContainer.appendChild(appMessage);
-
-            // Append the message container to the specified container
-            container.appendChild(messageContainer);
-        }
-
 </script>
 
 </body>

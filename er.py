@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from datetime import datetime
-import uuid
 import re
 from langchain.llms import OpenAI
 from langchain.chains import ConversationChain
@@ -13,10 +12,6 @@ from echomodel import EchoModel  # Import your custom model class
 app = Flask(__name__)
 CORS(app)
 app.secret_key = 'xyzsdfg'
-
-# Define the generate_unique_session_id function
-def generate_unique_session_id():
-    return str(uuid.uuid4())
 
 # Configure SQLite database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site1.db'
@@ -65,7 +60,6 @@ class Chats(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     input_data = db.Column(db.Text, nullable=False)
     output_data = db.Column(db.Text, nullable=False)
-    session_id = db.Column(db.String(50), nullable=True)  # Add session_id field
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -126,82 +120,32 @@ def register():
 
 @app.route('/logout')
 def logout():
-    session.clear()  # Clear the session, including the session ID
     flash('Successfully logged out', 'success')
     return redirect(url_for('login'))
-
 
 @app.route('/user')
 def user():
     user_id = session.get('userid')
     is_guest = session.get('guest')
 
+    # Check if the user is logged in (either registered or guest)
     if user_id is not None:
         if user_id >= 0:
+            # User is a registered user, retrieve user data
             user_data = User.query.filter_by(id=user_id).first()
             if user_data:
-                current_session_id = session.get('session_id')
-
-                # Set session_id if it doesn't exist
-                if current_session_id is None:
-                    current_session_id = generate_unique_session_id()
-                    session['session_id'] = current_session_id
-
-                # Retrieve conversation data for the current session
-                current_session_chats = Chats.query.filter_by(owner=user_id, session_id=current_session_id).all()
-
-                # Retrieve previous sessions
-                previous_sessions = db.session.query(Chats.session_id).filter_by(owner=user_id).distinct().all()
-
-                return render_template('index.html',
-                                       current_session_chats=current_session_chats,
-                                       previous_sessions=previous_sessions,
-                                       user=user_data,
-                                       is_guest=False,
-                                       session_id=current_session_id)
+                conversations = user_data.chats
+                return render_template('index.html', conversations=conversations, user=user_data, is_guest=False)
             else:
                 flash('User data not found.', 'error')
         else:
+            # User is a guest, handle guest logic
             return render_template('index.html', is_guest=True)
     else:
         flash('User not logged in. Please log in.', 'error')
 
     return redirect(url_for('login'))
-# Add this route to fetch previous sessions
-@app.route('/fetch_previous_sessions', methods=['GET'])
-def fetch_previous_sessions():
-    user_id = session.get('userid')
-    if user_id is not None and user_id >= 0:
-        previous_sessions = db.session.query(Chats.session_id).filter_by(owner=user_id).distinct().all()
 
-        # Print statements for debugging
-        print("Previous Sessions:", [session_id[0] for session_id in previous_sessions])
-
-        return jsonify([session_id[0] for session_id in previous_sessions])
-    else:
-        return jsonify([])
-
-# Add this route to fetch conversation for a specific session ID
-@app.route('/fetch_conversation/<string:session_id>', methods=['GET'])
-def fetch_conversation(session_id):
-    user_id = session.get('userid')
-    if user_id is not None and user_id >= 0:
-        if session_id == "null":
-            # Handle the case where session ID is "null"
-            return jsonify([])
-        
-        conversation_data = Chats.query.filter_by(owner=user_id, session_id=session_id).all()
-
-        # Print statements for debugging
-        print(f"Conversation Data for Session {session_id}:", conversation_data)
-
-        conversation_list = [{
-            "input_data": chat.input_data,
-            "output_data": chat.output_data
-        } for chat in conversation_data]
-        return jsonify(conversation_list)
-    else:
-        return jsonify([])
 # Define a route for handling POST requests containing user input
 @app.route('/data', methods=['POST'])
 def get_data():
@@ -215,8 +159,6 @@ def get_data():
 
         # Save the conversation data to the database if the user is a registered user
         user_id = session.get('userid')
-        session_id = session.get('session_id')  # Retrieve the session_id from the session
-
         if user_id is not None and user_id >= 0:
             conversation_data = Chats(owner=user_id, input_data=user_input, output_data=output)
             db.session.add(conversation_data)
