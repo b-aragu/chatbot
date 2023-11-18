@@ -126,10 +126,24 @@ def register():
 
 @app.route('/logout')
 def logout():
+    session_id = session.get('session_id')
+    user_id = session.get('userid')
+
+    # Print conversation data for the current session before logout
+    if user_id is not None and user_id >= 0 and session_id is not None:
+        session_conversations = Chats.query.filter_by(owner=user_id, session_id=session_id).all()
+        print(f"Conversations for Session {session_id} before logout:", session_conversations)
+
     session.clear()  # Clear the session, including the session ID
     flash('Successfully logged out', 'success')
     return redirect(url_for('login'))
+@app.route('/new_session', methods=['GET'])
+def start_new_session():
+    session_id = generate_unique_session_id()  # Generate a new session ID
+    session['session_id'] = session_id  # Set the new session ID
 
+    # Redirect to the login page or any other page where a new session can be established
+    return redirect(url_for('user'))
 
 @app.route('/user')
 def user():
@@ -142,10 +156,22 @@ def user():
             if user_data:
                 current_session_id = session.get('session_id')
 
-                # Set session_id if it doesn't exist
+                # Set session_id if it doesn't exist or is None
                 if current_session_id is None:
                     current_session_id = generate_unique_session_id()
                     session['session_id'] = current_session_id
+
+                    # Check if it's the user's first login
+                    existing_conversations = Chats.query.filter_by(owner=user_data.id).all()
+
+                    if not existing_conversations:
+                        # Create a system-generated welcome message
+                        welcome_message = (
+                            "Welcome to [Your Application Name]! This is your first login."
+                                     )
+                        flash(welcome_message, 'info')
+
+
 
                 # Retrieve conversation data for the current session
                 current_session_chats = Chats.query.filter_by(owner=user_id, session_id=current_session_id).all()
@@ -167,19 +193,6 @@ def user():
         flash('User not logged in. Please log in.', 'error')
 
     return redirect(url_for('login'))
-# Add this route to fetch previous sessions
-@app.route('/fetch_previous_sessions', methods=['GET'])
-def fetch_previous_sessions():
-    user_id = session.get('userid')
-    if user_id is not None and user_id >= 0:
-        previous_sessions = db.session.query(Chats.session_id).filter_by(owner=user_id).distinct().all()
-
-        # Print statements for debugging
-        print("Previous Sessions:", [session_id[0] for session_id in previous_sessions])
-
-        return jsonify([session_id[0] for session_id in previous_sessions])
-    else:
-        return jsonify([])
 
 # Add this route to fetch conversation for a specific session ID
 @app.route('/fetch_conversation/<string:session_id>', methods=['GET'])
@@ -202,6 +215,25 @@ def fetch_conversation(session_id):
         return jsonify(conversation_list)
     else:
         return jsonify([])
+
+# Add this route to fetch sessions ids
+@app.route('/fetch_sessions_Ids', methods=['GET'])
+def fetch__sessions_Ids():
+    user_id = session.get('userid')
+    if user_id is not None and user_id >= 0:
+        previous_sessions = db.session.query(Chats.session_id).filter_by(owner=user_id).distinct().all()
+
+        # Filter out null session IDs before returning
+        filtered_sessions = [session_id[0] for session_id in previous_sessions if session_id[0] is not None]
+
+        # Print statements for debugging
+        print("Previous Sessions:", filtered_sessions)
+
+        return jsonify(filtered_sessions)
+    else:
+        return jsonify([])
+
+
 # Define a route for handling POST requests containing user input
 @app.route('/data', methods=['POST'])
 def get_data():
@@ -218,7 +250,7 @@ def get_data():
         session_id = session.get('session_id')  # Retrieve the session_id from the session
 
         if user_id is not None and user_id >= 0:
-            conversation_data = Chats(owner=user_id, input_data=user_input, output_data=output)
+            conversation_data = Chats(owner=user_id, input_data=user_input, output_data=output, session_id=session_id)
             db.session.add(conversation_data)
             db.session.commit()
 

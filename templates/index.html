@@ -22,6 +22,7 @@
             width: min(95%, 800px);
             height: 100vh;
             margin-top: 85px;
+	    flex: 0.7;
         }
 
         .bottom {
@@ -29,7 +30,7 @@
             bottom: 0;
             padding-bottom: 5%;
             background-color: white;
-            width: min(95%, 800px);
+            width: min(100%, 1100px);
         }
 
         .message {
@@ -93,6 +94,71 @@
             padding: 3px;
             box-shadow: 1px 1px 5px #80808057;
         }
+	#sessionButtonsContainerWrapper {
+	
+ 	width: min(95%, 800px);
+        height: 100vh;
+        margin-top: 85px;
+	flex: 0.3;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border-right: 1px solid #ccc;
+
+	}
+#sessionButtonsContainer {
+  width: 100%;
+  overflow: auto;
+  height: 100%;
+  padding-right: 20px; /* Adjust padding to create space for the scrollbar */
+  box-sizing: content-box; /* Ensure padding is added inside the width */
+}
+
+#sessionButtonsContainer::-webkit-scrollbar {
+  width: 0;
+}
+
+
+.sessionButton {
+    padding: 10px;
+    background-color: None; /* Change to your preferred color */
+    color: white;
+    margin-right: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* Add a smooth transition effect */
+}
+    .sessionButton:hover {
+        background-color: #2980b9; /* Change to a darker shade on hover */
+    }
+    @media only screen and (max-width: 600px) {
+    .container {
+        flex-direction: column; /* Change flex direction to column for small screens */
+    }
+
+    .box {
+        width: 100%; /* Make the box full width on small screens */
+        margin-top: 0; /* Remove top margin on small screens */
+    }
+
+    .bottom {
+        width: 100%; /* Make the bottom section full width on small screens */
+    }
+
+    .usermessagediv, .appmessagediv {
+        margin-left: 0; /* Remove left margin for message divs on small screens */
+        margin-right: 0; /* Remove right margin for message divs on small screens */
+    }
+
+    #sessionButtonsContainerWrapper {
+        flex: 0.3; /* Set the session buttons container to take 30% of the width */
+        overflow-x: hidden;
+        overflow-y: auto;
+        border-right: 1px solid #ccc;
+    }
+}
+
+
     </style>
 </head>
 
@@ -127,7 +193,10 @@
     </nav>
 
     <div class="container">
-        <div class="box">
+	    <div id="sessionButtonsContainerWrapper">
+       		<div id="sessionButtonsContainer"></div>
+	    </div>
+	    <div class="box">
 	  <div class="upper" id="upperid">
     		<span class="downwarning">Type your message in the box below.</span>
 
@@ -146,11 +215,6 @@
         	   </div>
     		</div>
 	{% endfor %}    
-	<!-- Display a button or link to load more or view previous sessions -->
-	{% if previous_sessions %}
-    	<button onclick="loadPreviousSessions()">Load Previous Sessions</button>
-	{% endif %}
-
 	<!-- Container to display chat history for previous sessions -->
 	<div id="previousSessionsContainer" style="display: none;"></div>
 	<!-- Chat history for each previous session -->
@@ -174,9 +238,7 @@
                             </svg>
                             <span class="sr-only">Send message</span>
                         </button>
-                    </div>
-                </form>
-              
+                    </div>            
                 <span class="downwarning"> <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a> </span>
             </div>
         </div>
@@ -212,7 +274,66 @@
         // Call the async function
         fetchConversations();
     }
-    // for scrolling messages
+        document.addEventListener("DOMContentLoaded", function () {
+            loadSessionButtons().then(() => {
+       		 fetchConversations(sessionID);
+    		});
+        });
+ async function loadSessionButtons() {
+        try {
+            const response = await fetch("/fetch_sessions_Ids"); // Update the endpoint as needed
+            const sessions = await response.json();
+
+            const sessionButtonsContainer = document.getElementById("sessionButtonsContainer");
+
+          	sessionButtonsContainer.innerHTML = "";
+
+	        // Create "New Chat" button
+        	const newChatsButton = document.createElement("button");
+        	newChatsButton.textContent = "New Chat";
+        	newChatsButton.classList.add("sessionButton");
+        	newChatsButton.addEventListener("click", redirectToNewSession);
+        	sessionButtonsContainer.appendChild(newChatsButton);
+
+        // Create buttons for existing sessions
+
+		sessions.forEach((sessionID) => {
+                const button = document.createElement("button");
+                button.textContent = `Session ${sessionID}`;
+                button.classList.add("sessionButton");
+                button.addEventListener("click", () => loadSessionConversation(sessionID));
+                sessionButtonsContainer.appendChild(button);
+            });
+        } catch (error) {
+            console.error("Error loading session buttons:", error);
+        }
+    }
+
+    async function loadSessionConversation(sessionID) {
+        try {
+            const response = await fetch(`/fetch_conversation/${sessionID}`);
+            const conversationData = await response.json();
+
+            const upperDiv = document.getElementById("upperid");
+            upperDiv.innerHTML = "";  // Clear existing content
+
+            conversationData.forEach((conversation) => {
+                displayConversation(conversation, upperDiv);
+            });
+
+            // Scroll to the bottom after loading
+            scrollToBottom();
+        } catch (error) {
+            console.error(`Error loading conversation for Session ${sessionID}:`, error);
+        }
+    }
+   
+    function redirectToNewSession() {
+    	console.log("Redirecting to new session");
+    	window.location.href = "/new_session"; // Redirect to the /new_session route
+	}
+
+		// for scrolling messages
     function scrollToBottom() {
         var div = document.getElementById("upperid");
         div.scrollTop = div.scrollHeight;
@@ -373,39 +494,7 @@
     }
 
 
-    function loadPreviousSessions() {
-        var container = document.getElementById("previousSessionsContainer");
-        container.style.display = (container.style.display === "none") ? "block" : "none";
-    }
-	
-
-        // Function to load previous sessions and their conversations
-        async function loadPreviousSessions() {
-            try {
-                const response = await fetch("/fetch_previous_sessions");  // Update the endpoint as needed
-                const data = await response.json();
-
-                const previousSessionsContainer = document.getElementById("previousSessionsContainer");
-                previousSessionsContainer.innerHTML = "";  // Clear previous content
-
-                data.forEach(async (sessionID) => {
-                    const sessionResponse = await fetch(`/fetch_conversation/${sessionID}`);
-                    const conversationData = await sessionResponse.json();
-
-                    // Display conversations for each session
-                    conversationData.forEach((conversation) => {
-                        displayConversation(conversation, previousSessionsContainer);
-                    });
-                });
-
-                // Show the container after loading
-                previousSessionsContainer.style.display = "block";
-            } catch (error) {
-                console.error("Error loading previous sessions:", error);
-            }
-        }
-
-        // Function to display a conversation
+            // Function to display a conversation
         function displayConversation(conversation, container) {
             // Create HTML elements for user and bot messages
             const userMessage = document.createElement("div");

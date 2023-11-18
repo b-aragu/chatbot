@@ -48,4 +48,4 @@ Flask-Security-Too
 Flask-SQLAlchemy
 Flask-WTF
 pytz
-
+flask_migrate
