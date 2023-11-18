@@ -49,3 +49,4 @@ Flask-SQLAlchemy
 Flask-WTF
 pytz
 flask_migrate
+gunicorn
