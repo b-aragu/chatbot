@@ -10,29 +10,59 @@ Before you begin, ensure you have the following installed on your computer:
 
 1. **Python 3.7 or later:** You can download and install it from [python.org](https://www.python.org/downloads/).
 
-2. **Virtual Environment (Optional but recommended):** This helps to create an isolated environment for your project.
+2. **Git:** If you're on Windows, download and install Git from [git-scm.com](https://git-scm.com/download/win). Linux users can install Git through their package manager:
+
+    On Ubuntu or Debian:
+
+    ```bash
+    sudo apt-get update
+    sudo apt-get install git
+    ```
+
+    On Fedora:
+
+    ```bash
+    sudo dnf install git
+    ```
+
+    On CentOS:
+
+    ```bash
+    sudo yum install git
+    ```
+
+3. **Virtual Environment (Optional but recommended):** This helps to create an isolated environment for your project.
 
 ### Installation
 
 Follow these steps to set up the Chatbot Application:
 
-1. **Clone the repository:**
+1. **Open your terminal or Command Prompt:**
 
-    Open your terminal or command prompt and run:
+    - On **Windows:** Press `Win + R`, type `cmd`, and press Enter.
+    - On **Linux:** Press `Ctrl + Alt + T` or use the terminal shortcut for your distribution.
+
+2. **Navigate to the directory where you want to clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/chatbot-application.git
+    cd path\to\your\desired\directory
     ```
 
-2. **Navigate to the project directory:**
+3. **Clone the repository:**
 
-    Change into the project directory:
+    ```bash
+    git clone git@github.com:b-aragu/chatbot.git
+    ```
+
+    This will clone the repository using the SSH protocol.
+
+4. **Navigate to the project directory:**
 
     ```bash
     cd chatbot
     ```
 
-3. **Create and activate a virtual environment:**
+5. **Create and activate a virtual environment:**
 
     If you're new to virtual environments, these commands will help set it up:
 
@@ -46,13 +76,13 @@ Follow these steps to set up the Chatbot Application:
     .\venv\Scripts\activate
     ```
 
-    On Unix or MacOS, use:
+    On Linux, use:
 
     ```bash
     source venv/bin/activate
     ```
 
-4. **Install project dependencies:**
+6. **Install project dependencies:**
 
     Install the required packages for the Chatbot Application:
 
