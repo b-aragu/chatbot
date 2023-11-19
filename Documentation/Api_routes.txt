@@ -1,0 +1,50 @@
+# API Routes Documentation
+
+# Route: /login
+# Method: GET, POST
+# Description: Handle login requests. If POST, authenticate user and redirect to user page.
+# Parameters: 'guest_action' (boolean), 'email' (string), 'password' (string)
+# Returns: Response to the login request, redirects to user page on successful login.
+
+# Route: /register
+# Method: POST
+# Description: Handle user registration requests. Validates input and creates a new user account.
+# Parameters: 'name' (string), 'password' (string), 'email' (string)
+# Returns: Response to the registration request, redirects to login page on successful registration.
+
+# Route: /logout
+# Method: GET
+# Description: Handle user logout requests. Clears the session and logs the user out.
+# Parameters: None
+# Returns: Response to the logout request, redirects to login page on successful logout.
+
+# Route: /new_session
+# Method: GET
+# Description: Start a new session for the user. Generates a new session ID.
+# Parameters: None
+# Returns: Response to the request for starting a new session, redirects to user page.
+
+# Route: /user
+# Method: GET
+# Description: Handle requests related to user data. Retrieve user information and session data.
+# Parameters: None
+# Returns: Response to the request for user data, renders the user page.
+
+# Route: /fetch_conversation/<string:session_id>
+# Method: GET
+# Description: Fetch conversation data for a specific session ID.
+# Parameters: session_id (str)
+# Returns: JSON response containing conversation data for the specified session ID.
+
+# Route: /fetch_sessions_Ids
+# Method: GET
+# Description: Fetch session IDs for the current user.
+# Parameters: None
+# Returns: JSON response containing session IDs for the current user.
+
+# Route: /data
+# Method: POST
+# Description: Handle POST requests containing user input. Use the language model to get a response.
+# Parameters: JSON data containing user input.
+# Returns: JSON response containing the model's prediction, saves conversation data if the user is registered.
+

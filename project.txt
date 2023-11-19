@@ -1,0 +1,89 @@
+1. Project Proposal:
+Objective:
+Description: A brief overview of the project and its intended goals.
+Problem Statement: Identify the specific issues the chatbot aims to address.
+Beneficiaries: Explain how faculty and students will benefit from the chatbot.
+2. Requirements Document:
+Functionalities:
+
+List of Features: Enumerate all functionalities, referring to the project requirements.
+User Stories: Break down features into user stories for a better understanding.
+Roles and Responsibilities:
+
+Client: Describe responsibilities related to user interaction.
+Server: Outline tasks related to communication with LLM.
+LLM: Clarify its role in generating responses.
+3. System Architecture:
+Diagram:
+Components: Visualize the client, server, and LLM components.
+Communication Protocols: Define how these components will interact.
+4. User Interface Design:
+Wireframes:
+Create sketches or digital representations of the client interface.
+Flow Diagram: Illustrate the user flow from creating a chat to viewing completions.
+5. Database Design (if applicable):
+Schema:
+Define the structure of the database.
+Entities: Identify tables/entities for users, chat history, etc.
+Development:
+6. Client Development:
+Language and Framework:
+Specify the programming language and framework for client development.
+Functionality Implementation:
+Detail how the client will handle user interactions, prompts, and completions.
+7. Server Development:
+Language and Framework:
+Specify the programming language and framework for server development.
+Communication with LLM:
+Explain how the server will forward prompts to LLM and handle completions.
+8. LLM Integration (Dummy LLM):
+Purpose:
+Explain the use of a dummy LLM for testing.
+Integration Steps: Detail how the dummy LLM is integrated with the server.
+9. User Authentication and Authorization:
+Functionality:
+Describe how users can sign up, log in, and access specific features.
+10. Chat History and Export:
+Implementation:
+Detail how chat history is saved and how users can export it.
+11. Protocol Development:
+Collaboration:
+Discuss how teams will collaborate to establish communication protocols.
+Standardization: Emphasize the importance of following agreed-upon standards.
+Testing:
+12. Unit Testing and Integration Testing:
+Tools:
+Specify the unit testing tools used for automated testing.
+Integration Testing: Outline the steps and tools for integration testing.
+Project Management:
+13. Workplan:
+Microsoft Project:
+Use Microsoft Project to create a detailed workplan.
+Tasks and Timelines: Clearly outline tasks and their deadlines.
+14. Progress Tracking:
+Updates:
+Regularly update the progress using MS Project.
+Monitoring: Discuss how progress will be monitored and reported.
+Documentation:
+15. UML Diagrams, DFDs, and ERDs:
+Tools:
+Specify the UML CASE tools used for diagram creation.
+Draw Diagrams: Include class diagrams, sequence diagrams, DFDs, and ERDs.
+Version Control:
+16. Version Control System:
+Choice:
+Specify the version control system used (e.g., GitHub).
+Consistency: Emphasize its role in maintaining code consistency.
+Final Demonstration:
+17. Preparation:
+Server Availability:
+Ensure the server is up and ready for demonstration.
+Inter-Team Testing: Test connections with other teams' chatbot clients.
+Continuous Improvement:
+18. Flexibility for Future LLMs:
+Design Considerations:
+Highlight design elements that allow for easy integration with different LLMs.
+Implementation Guide:
+19. Step-by-Step Guide:
+Create a detailed guide for each development phase.
+Include code snippets, configurations, and dependencies.

@@ -16,6 +16,12 @@ app.secret_key = 'xyzsdfg'
 
 # Define the generate_unique_session_id function
 def generate_unique_session_id():
+    """
+    Generate a unique session ID using UUID.
+
+    Returns:
+        str: A string representation of the unique session ID.
+    """
     return str(uuid.uuid4())
 
 # Configure SQLite database
@@ -25,24 +31,67 @@ migrate = Migrate(app, db)
 
 # Define an abstract class for language models
 class LanguageModel:
+    """An abstract class representing a language model."""
     def predict(self, user_input):
+        """Make a prediction based on user input.
+
+        Args:
+            user_input (str): The input provided by the user.
+
+        Returns:
+            str: The model's prediction.
+        """
         pass
 
 # Define the OpenAI language model class
 class OpenAILanguageModel(LanguageModel):
+    """A class representing the OpenAI language model."""
     def __init__(self, api_key):
+        """Initialize the OpenAI language model.
+
+        Args:
+            api_key (str): The API key for accessing the OpenAI language model.
+        """
         self.llm = OpenAI(openai_api_key=api_key)
 
     def predict(self, user_input):
+        """Make a prediction using the OpenAI language model.
+
+        Args:
+            user_input (str): The input provided by the user.
+
+        Returns:
+            str: The model's prediction.
+        """
         return self.llm.predict(user_input)
 
 # Define your custom language model class
 class YourCustomLanguageModel(LanguageModel):
+    """A class representing a custom language model."""
     def __init__(self, model_data):
+        """Initialize the custom language model.
+
+        Args:
+            model_data (str): Data required for initializing the custom model.
+        """
+    def __init__(self, model_data):
+        """Initialize the custom language model.
+
+        Args:
+            model_data (str): Data required for initializing the custom model.
+        """
         # Initialize your custom language model
         pass
 
     def predict(self, user_input):
+        """Make a prediction using the custom language model.
+
+        Args:
+            user_input (str): The input provided by the user.
+
+        Returns:
+            str: The model's prediction.
+        """
         # Implement the prediction logic for your custom model
         pass
 
@@ -53,6 +102,7 @@ class YourCustomLanguageModel(LanguageModel):
 language_model = EchoModel()
 
 class User(db.Model):
+    """A class representing a user in the system."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
@@ -60,6 +110,7 @@ class User(db.Model):
     chats = db.relationship('Chats', backref='user', lazy=True)
 
 class Chats(db.Model):
+    """A class representing chat data."""
     id = db.Column(db.Integer, primary_key=True)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -70,6 +121,11 @@ class Chats(db.Model):
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle login requests.
+
+    Returns:
+        Response: A response to the login request.
+    """
     if request.method == 'POST':
         if request.form.get('guest_action') == 'true':
             # User is logging in as a guest
@@ -103,6 +159,11 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """Handle user registration requests.
+
+    Returns:
+        Response: A response to the registration request.
+    """
     if request.method == 'POST' and 'name' in request.form and 'password' in request.form and 'email' in request.form:
         user_name = request.form['name']
         password = request.form['password']
@@ -126,6 +187,11 @@ def register():
 
 @app.route('/logout')
 def logout():
+    """Handle user logout requests.
+
+    Returns:
+        Response: A response to the logout request.
+    """
     session_id = session.get('session_id')
     user_id = session.get('userid')
 
@@ -139,6 +205,11 @@ def logout():
     return redirect(url_for('login'))
 @app.route('/new_session', methods=['GET'])
 def start_new_session():
+    """Start a new session for the user.
+
+    Returns:
+        Response: A response to the request for starting a new session.
+    """
     session_id = generate_unique_session_id()  # Generate a new session ID
     session['session_id'] = session_id  # Set the new session ID
 
@@ -147,6 +218,11 @@ def start_new_session():
 
 @app.route('/user')
 def user():
+    """Handle requests related to user data.
+
+    Returns:
+        Response: A response to the request for user data.
+    """
     user_id = session.get('userid')
     is_guest = session.get('guest')
 
@@ -197,6 +273,14 @@ def user():
 # Add this route to fetch conversation for a specific session ID
 @app.route('/fetch_conversation/<string:session_id>', methods=['GET'])
 def fetch_conversation(session_id):
+    """Fetch conversation data for a specific session ID.
+
+    Args:
+        session_id (str): The session ID for which conversation data is requested.
+
+    Returns:
+        jsonify: A JSON response containing conversation data.
+    """
     user_id = session.get('userid')
     if user_id is not None and user_id >= 0:
         if session_id == "null":
@@ -219,6 +303,11 @@ def fetch_conversation(session_id):
 # Add this route to fetch sessions ids
 @app.route('/fetch_sessions_Ids', methods=['GET'])
 def fetch__sessions_Ids():
+    """Fetch session IDs for the current user.
+
+    Returns:
+        jsonify: A JSON response containing session IDs.
+    """
     user_id = session.get('userid')
     if user_id is not None and user_id >= 0:
         previous_sessions = db.session.query(Chats.session_id).filter_by(owner=user_id).distinct().all()
@@ -237,6 +326,11 @@ def fetch__sessions_Ids():
 # Define a route for handling POST requests containing user input
 @app.route('/data', methods=['POST'])
 def get_data():
+    """Handle POST requests containing user input.
+
+    Returns:
+        jsonify: A JSON response containing the model's prediction.
+    """
     data = request.get_json()
     text = data.get('data')
     user_input = text
