@@ -157,6 +157,72 @@
         border-right: 1px solid #ccc;
     }
 }
+/* Add some basic styles to improve aesthetics */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-title {
+  text-align: center;
+  color: #333;
+}
+
+.setting-item {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+.save-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  background-color: #45a049;
+}
 
 
     </style>
@@ -190,6 +256,27 @@
 
 
 	</div>
+<!-- Add a settings button to the navigation bar -->
+<button onclick="openSettings()" class="settings-button">Settings</button>
+
+<!-- The modal for settings -->
+<div id="settingsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeSettings()">&times;</span>
+    <h2 class="modal-title">Chatbot Settings</h2>
+    <div class="setting-item">
+      <label for="typingSpeed">Typing Speed:</label>
+      <input type="range" id="typingSpeed" min="1" max="5" step="1" value="3">
+    </div>
+    <div class="setting-item">
+      <label for="llmTemperature">LLM Temperature:</label>
+      <input type="range" id="llmTemperature" min="1" max="5" step="1" value="3">
+    </div>
+    <!-- Add similar inputs for other settings -->
+    <button onclick="saveSettings()" class="save-button">Save</button>
+  </div>
+</div>
+
     </nav>
 
     <div class="container">
@@ -355,6 +442,9 @@
     // sending request to python server
     const formsubmitted = async () => {
         let userinput = document.getElementById('userinput').value
+	 // Get the current values of the settings
+    	let typingSpeed = document.getElementById('typingSpeed').value;
+    	let llmTemperature = document.getElementById('llmTemperature').value;
         let sendbtn = document.getElementById('sendbtn')
         let userinputarea = document.getElementById('userinput')
         let upperdiv = document.getElementById('upperid')
@@ -380,7 +470,9 @@
                 },
                 body: JSON.stringify({ 
 			data: userinput,
-			session_id: "{{ session['session_id'] }}"  // Use the session ID obtained from the HTML
+			session_id: "{{ session['session_id'] }}",
+			typing_speed: typingSpeed,
+                	llm_temperature: llmTemperature,
 		})
             });
 
@@ -411,7 +503,7 @@
                     if (index < message.length) {
                         temp.innerHTML = temp.innerHTML + message[index];
                         index++;
-                        setTimeout(displayNextLetter, 30);
+                        setTimeout(displayNextLetter, 30 * typingSpeed);
                     } else {
                         temp.removeAttribute('id')
                         sendbtn.disabled = false
@@ -514,6 +606,28 @@
             // Append the message container to the specified container
             container.appendChild(messageContainer);
         }
+    // JavaScript code
+let typingSpeed = 3; // Default typing speed
+
+function openSettings() {
+    document.getElementById('settingsModal').style.display = 'block';
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function saveSettings() {
+    // Get values from input elements and save them
+    typingSpeed = document.getElementById('typingSpeed').value;
+    // Save other settings similarly
+    closeSettings(); // Close the modal after saving
+}
+    // Add event listeners to prevent clicks on the modal from propagating to the underlying elements
+document.getElementById('settingsModal').addEventListener('click', function (event) {
+    event.stopPropagation();
+});
+
 
 </script>
 

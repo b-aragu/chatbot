@@ -337,7 +337,9 @@ def get_data():
 
     try:
         # Use the selected language model to get a response
-        output = language_model.predict(user_input)
+        typing_speed = data.get('typing_speed', 3)  # Use a default value if not provided
+        llm_temperature = data.get('llm_temperature', 0.7)  # Use a default value if not provided
+        output = language_model.predict(user_input, typing_speed=typing_speed, llm_temperature=llm_temperature)
 
         # Save the conversation data to the database if the user is a registered user
         user_id = session.get('userid')
