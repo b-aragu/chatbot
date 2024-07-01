@@ -5,14 +5,22 @@ from flask_cors import CORS
 from datetime import datetime
 import uuid
 import re
+import os
+from groq import Groq
 from langchain.llms import OpenAI
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationSummaryBufferMemory
 from echomodel import EchoModel  # Import your custom model class
 
+
 app = Flask(__name__)
 CORS(app)
 app.secret_key = 'xyzsdfg'
+
+# Initialize Groq client
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+MODEL = 'llama3-70b-8192'
+
 
 # Define the generate_unique_session_id function
 def generate_unique_session_id():
@@ -31,17 +39,36 @@ migrate = Migrate(app, db)
 
 # Define an abstract class for language models
 class LanguageModel:
-    """An abstract class representing a language model."""
-    def predict(self, user_input):
-        """Make a prediction based on user input.
-
-        Args:
-            user_input (str): The input provided by the user.
-
-        Returns:
-            str: The model's prediction.
+    @staticmethod
+    def run_conversation(user_prompt, typing_speed=0.3, llm_temperature=0.7):
         """
-        pass
+        Run a conversation with the LLM
+        """
+        prompt = f"""
+        You are a helpful assistant. Your name is Echo. Your job is to help users. 
+        """
+    
+        messages = [
+            {
+                "role": "system",
+                "content": prompt,
+            },
+            {
+                "role": "user",
+                "content": user_prompt,
+            }
+        ]
+
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            max_tokens=4096
+        )
+
+        response_message = response.choices[0].message.content
+
+        return response_message
+
 
 # Define the OpenAI language model class
 class OpenAILanguageModel(LanguageModel):
@@ -65,41 +92,12 @@ class OpenAILanguageModel(LanguageModel):
         """
         return self.llm.predict(user_input)
 
-# Define your custom language model class
-class YourCustomLanguageModel(LanguageModel):
-    """A class representing a custom language model."""
-    def __init__(self, model_data):
-        """Initialize the custom language model.
-
-        Args:
-            model_data (str): Data required for initializing the custom model.
-        """
-    def __init__(self, model_data):
-        """Initialize the custom language model.
-
-        Args:
-            model_data (str): Data required for initializing the custom model.
-        """
-        # Initialize your custom language model
-        pass
-
-    def predict(self, user_input):
-        """Make a prediction using the custom language model.
-
-        Args:
-            user_input (str): The input provided by the user.
-
-        Returns:
-            str: The model's prediction.
-        """
-        # Implement the prediction logic for your custom model
-        pass
 
 # Choose the language model you want to use (replace with your actual key or data)
 # language_model = OpenAILanguageModel(api_key="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")
 # Alternatively, use your custom language model
 # language_model = YourCustomLanguageModel(model_data="your_model_data")
-language_model = EchoModel()
+language_model = LanguageModel()
 
 class User(db.Model):
     """A class representing a user in the system."""
@@ -337,9 +335,9 @@ def get_data():
 
     try:
         # Use the selected language model to get a response
-        typing_speed = data.get('typing_speed', 3)  # Use a default value if not provided
+        typing = data.get('typing_speed', 3)  # Use a default value if not provided
         llm_temperature = data.get('llm_temperature', 0.7)  # Use a default value if not provided
-        output = language_model.predict(user_input, typing_speed=typing_speed, llm_temperature=llm_temperature)
+        output = language_model.run_conversation(user_input, typing_speed=typing, llm_temperature=llm_temperature)
 
         # Save the conversation data to the database if the user is a registered user
         user_id = session.get('userid')
